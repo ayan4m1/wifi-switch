@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <WiFi.h>
 
-#define SERIAL_DEBUG
+// #define SERIAL_DEBUG
 
 #define WIFI_SSID "bar"
 #define WIFI_PSK "wi9NNYara"
