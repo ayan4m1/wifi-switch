@@ -117,20 +117,18 @@ void loop() {
           state = false;
         }
 
-        client.println(F("<!DOCTYPE html><html>"));
-        client.println(
-            F("<head><meta name=\"viewport\" content=\"width=device-width, "
-              "initial-scale=1\"><style>"));
-        client.println(
-            F("html { font-family: sans-serif; margin: 0px auto; "
-              "text-align: center; }"));
         client.println(F(
+            "<!DOCTYPE html>\n"
+            "<html><head><meta name=\"viewport\" content=\"width=device-width, "
+            "initial-scale=1\"><style>\n"
+            "html { font-family: sans-serif; margin: 0px auto; "
+            "text-align: center; }\n"
             ".button { background-color: #4CAF50; border: none; color: white; "
             "padding: 16px 40px; text-decoration: none; font-size: 30px; "
             "margin: 2px; cursor: pointer; } .button--off {background-color: "
-            "#555555;}"));
-        client.println(F("</style></head><body>"));
-        client.println(F("<h1>Printer Light Control</h1>"));
+            "#555555;}\n"
+            "</style></head><body>\n"
+            "<h1>Printer Light Control</h1>\n"));
         client.printf("<p>Current state: %s</p>\n", state ? "ON" : "OFF");
         if (state) {
           client.println(
