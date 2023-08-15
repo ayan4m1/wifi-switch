@@ -4,6 +4,9 @@
 // uncomment this to enable serial debug logging
 // #define SERIAL_DEBUG
 
+// this goes in the HTML heading for descriptive purposes
+#define DEVICE_NAME "Printer Light"
+
 // you MUST modify these values to match your network
 #define WIFI_SSID "bar"
 #define WIFI_PSK "wi9NNYara"
@@ -20,7 +23,7 @@
 #define HTTP_TIMEOUT_MS 5000
 #define HTTP_PORT 80
 
-// uncomment this to invert the logical output of RELAY_PIN
+// uncomment this to if your relay turns on with logic level LOW
 // #define INVERT_RELAY_TRIGGER
 
 // uncomment this if your LED turns on with logic level HIGH
@@ -28,6 +31,7 @@
 
 WiFiServer server(HTTP_PORT);
 bool state = false;
+uint32_t activeUntil = 0;
 
 void setup() {
 #ifdef SERIAL_DEBUG
@@ -76,6 +80,13 @@ void setup() {
 }
 
 void loop() {
+  if (state && activeUntil > 0 && activeUntil < millis()) {
+    state = false;
+    activeUntil = 0;
+  } else if (!state && activeUntil > millis()) {
+    state = true;
+  }
+
 #ifndef INVERT_RELAY_TRIGGER
   digitalWrite(RELAY_PIN, state ? HIGH : LOW);
 #else
@@ -105,7 +116,19 @@ void loop() {
         client.println(F("Connection: close"));
         client.println();
 
-        if (header.indexOf("GET /on") >= 0) {
+        if (header.indexOf("GET /timer") >= 0 && state) {
+          auto minutes =
+              header
+                  .substring(header.indexOf("?mins=") + 6,
+                             header.indexOf("?mins=") +
+                                 header.substring(header.indexOf("?mins="))
+                                     .indexOf(" "))
+                  .toInt();
+
+          if (minutes > 0) {
+            activeUntil = millis() + (minutes * 60000);
+          }
+        } else if (header.indexOf("GET /on") >= 0) {
 #ifdef SERIAL_DEBUG
           Serial.println(F("Turning relay on!"));
 #endif
@@ -115,6 +138,7 @@ void loop() {
           Serial.println(F("Turning relay off!"));
 #endif
           state = false;
+          activeUntil = 0;
         }
 
         client.println(F(
@@ -123,12 +147,12 @@ void loop() {
             "initial-scale=1\"><style>\n"
             "html { font-family: sans-serif; margin: 0px auto; "
             "text-align: center; }\n"
-            ".button { background-color: #4CAF50; border: none; color: white; "
-            "padding: 16px 40px; text-decoration: none; font-size: 30px; "
-            "margin: 2px; cursor: pointer; } .button--off {background-color: "
-            "#555555;}\n"
+            ".button { background-color: #4CAF50; border: none; border-radius: "
+            "8px; color: white; padding: 16px 40px; text-decoration: none; "
+            "font-size: 30px; margin: 2px; cursor: pointer; }\n"
+            ".button--off { background-color: #8a3324; }\n"
             "</style></head><body>\n"
-            "<h1>Printer Light Control</h1>\n"));
+            "<h1>" DEVICE_NAME " Control</h1>\n"));
         client.printf("<p>Current state: %s</p>\n", state ? "ON" : "OFF");
         if (state) {
           client.println(
@@ -138,6 +162,17 @@ void loop() {
           client.println(
               F("<p><a href=\"/on\"><button "
                 "class=\"button\">Turn On</button></a></p>"));
+        }
+        if (state) {
+          client.println(
+              F("<form action=\"/timer\">Turn off in <input type=\"number\" "
+                "min=\"1\" max=\"10000\" step=\"1\" value=\"0\" name=\"mins\" "
+                "/> minute(s) <button type=\"submit\">Set</button></form>"));
+
+          if (activeUntil > 0) {
+            client.printf("<p>Turning off in %d minute(s)</p>",
+                          (uint16_t)ceil((activeUntil - millis()) / 60000));
+          }
         }
         client.println(F("</body></html>"));
         client.println();
