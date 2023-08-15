@@ -148,7 +148,7 @@ void loop() {
             "html { font-family: sans-serif; margin: 0px auto; "
             "text-align: center; }\n"
             ".button { background-color: #4CAF50; border: none; border-radius: "
-            "8px; color: white; padding: 16px 40px; text-decoration: none; "
+            "8px; color: white; padding: 16px 32px; text-decoration: none; "
             "font-size: 30px; margin: 2px; cursor: pointer; }\n"
             ".button--off { background-color: #8a3324; }\n"
             "</style></head><body>\n"
