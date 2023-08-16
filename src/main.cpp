@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <ESPmDNS.h>
 #include <WiFi.h>
 
 // uncomment this to enable serial debug logging
@@ -6,6 +7,9 @@
 
 // this goes in the HTML heading for descriptive purposes
 #define DEVICE_NAME "Printer Light"
+
+// the device will be available at http://<hostname>.local
+#define DEVICE_HOSTNAME "light"
 
 // you MUST modify these values to match your network
 #define WIFI_SSID "bar"
@@ -71,6 +75,9 @@ void setup() {
 #ifdef SERIAL_DEBUG
   Serial.println("HTTP init!");
 #endif
+
+  MDNS.begin(DEVICE_HOSTNAME);
+  MDNS.addService("http", "tcp", HTTP_PORT);
 
 #ifndef INVERT_LED
   digitalWrite(LED_BUILTIN, LOW);
