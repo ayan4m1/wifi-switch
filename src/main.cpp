@@ -2,18 +2,20 @@
 #include <ESPmDNS.h>
 #include <WiFi.h>
 
+#include "credentials.h"
+
 // uncomment this to enable serial debug logging
 // #define SERIAL_DEBUG
 
 // this goes in the HTML heading for descriptive purposes
-#define DEVICE_NAME "Printer Light"
+#define DEVICE_NAME "Light"
 
 // the device will be available at http://<hostname>.local
 #define DEVICE_HOSTNAME "light"
 
-// you MUST modify these values to match your network
-#define WIFI_SSID "bar"
-#define WIFI_PSK "wi9NNYara"
+// modify default AP details here
+#define WIFI_SSID "LightConfig"
+#define WIFI_PSK "HamuelJackson"
 
 // you MUST modify this value to match your wiring
 #define RELAY_PIN 14
@@ -33,9 +35,13 @@
 // uncomment this if your LED turns on with logic level HIGH
 // #define INVERT_LED
 
+ESP_WiFiManager_Lite* wifiManager;
 WiFiServer server(HTTP_PORT);
 bool state = false;
 uint32_t activeUntil = 0;
+
+String ssid = WIFI_SSID;
+String psk = WIFI_PSK;
 
 void setup() {
 #ifdef SERIAL_DEBUG
@@ -62,14 +68,9 @@ void setup() {
   Serial.println(F("Logic init!"));
 #endif
 
-  WiFi.begin(WIFI_SSID, WIFI_PSK);
-  while (!WiFi.isConnected()) {
-    delay(1000);
-  }
-#ifdef SERIAL_DEBUG
-  Serial.println(F("WiFi init!"));
-  Serial.println("IP Address: " + WiFi.localIP().toString());
-#endif
+  wifiManager = new ESP_WiFiManager_Lite();
+  wifiManager->setConfigPortal(ssid, psk);
+  wifiManager->begin(DEVICE_HOSTNAME);
 
   server.begin();
 #ifdef SERIAL_DEBUG
@@ -87,6 +88,12 @@ void setup() {
 }
 
 void loop() {
+  wifiManager->run();
+
+  if (!wifiManager->getWiFiStatus() || wifiManager->isConfigMode()) {
+    return;
+  }
+
   if (state && activeUntil > 0 && activeUntil < millis()) {
     state = false;
     activeUntil = 0;

@@ -29,3 +29,7 @@ Once the device boots, it will obtain an IP address and start an HTTP server. Yo
 ## Troubleshooting
 
 Uncomment `#define SERIAL_DEBUG` in main.cpp and use "Upload and Monitor" in VS Code to troubleshoot issues with WiFi connectivity.
+
+## Roadmap
+
+Eventually, this firmware will not need to be customized in code - you'll be able to set all options from the web interface, and it will host its own access point for initial WiFi setup.
